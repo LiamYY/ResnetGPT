@@ -33,7 +33,8 @@ config = TransformerConfig()
 
 model = get_model(config,  130)
 模型路径 = 'weights/model_weights'
-model = model.cuda(device)
+# model = model.cuda(device)
+model = model.cpu()
 optimizer = torch.optim.Adam(model.parameters(), lr=6.25e-5, betas=(0.9, 0.98), eps=1e-9)
 
 
@@ -95,9 +96,12 @@ for j in range(100):
                     目标输出_分_枝 = np.array(目标输出_分_表[i * 树枝:len(目标输出_分_表)])
                     循环 = False
 
-                操作_分_torch=torch.from_numpy(操作_分_枝).cuda(device)
-                图片_分_torch = torch.from_numpy(图片_分_枝).cuda(device)
-                目标输出_分_torch = torch.from_numpy(目标输出_分_枝).cuda(device)
+                # 操作_分_torch=torch.from_numpy(操作_分_枝).cuda(device)
+                操作_分_torch = torch.from_numpy(操作_分_枝).cpu()
+                # 图片_分_torch = torch.from_numpy(图片_分_枝).cuda(device)
+                图片_分_torch = torch.from_numpy(图片_分_枝).cpu()
+                # 目标输出_分_torch = torch.from_numpy(目标输出_分_枝).cuda(device)
+                目标输出_分_torch = torch.from_numpy(目标输出_分_枝).cpu()
 
 
                 src_mask, trg_mask = create_masks(操作_分_torch, 操作_分_torch, device)

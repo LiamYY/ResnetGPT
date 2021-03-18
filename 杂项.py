@@ -16,7 +16,8 @@ def nopeak_mask(size, device):
     k=1).astype('uint8')
     np_mask =  Variable(torch.from_numpy(np_mask) == 0)
 
-    np_mask = np_mask.cuda(device)
+    # np_mask = np_mask.cuda(device)
+    np_mask = np_mask.cpu()
     return np_mask
 def 打印测试数据(数_词表,数据, 输人_分,标签):
     临 = 数据[0]

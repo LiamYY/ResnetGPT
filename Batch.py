@@ -1,5 +1,5 @@
 import torch
-from torchtext import data
+from torchtext.legacy.data import Example, Iterator, Dataset, Field, batch
 import numpy as np
 from torch.autograd import Variable
 
@@ -9,7 +9,8 @@ def nopeak_mask(size, device):
     k=1).astype('uint8')
     variable = Variable
     np_mask = variable(torch.from_numpy(np_mask) == 0)
-    np_mask = np_mask.cuda(device)
+    # np_mask = np_mask.cuda(device)
+    np_mask = np_mask.cpu()
     return np_mask
 
 def create_masks(src, trg, device):
@@ -18,7 +19,8 @@ def create_masks(src, trg, device):
 
     if trg is not None:
         trg_mask = (trg != -1).unsqueeze(-2)
-        trg_mask.cuda(device)
+        # trg_mask.cuda(device)
+        trg_mask.cpu()
         size = trg.size(1) # get seq_len for matrix
         np_mask = nopeak_mask(size, device)
         trg_mask = trg_mask & np_mask
@@ -29,12 +31,12 @@ def create_masks(src, trg, device):
 # patch on Torchtext's batching process that makes it more efficient
 # from http://nlp.seas.harvard.edu/2018/04/03/attention.html#position-wise-feed-forward-networks
 
-class MyIterator(data.Iterator):
+class MyIterator(Iterator):
     def create_batches(self):
         if self.train:
             def pool(d, random_shuffler):
-                for p in data.batch(d, self.batch_size * 100):
-                    p_batch = data.batch(
+                for p in batch(d, self.batch_size * 100):
+                    p_batch = batch(
                         sorted(p, key=self.sort_key),
                         self.batch_size, self.batch_size_fn)
                     for b in random_shuffler(list(p_batch)):
@@ -43,7 +45,7 @@ class MyIterator(data.Iterator):
             
         else:
             self.batches = []
-            for b in data.batch(self.data(), self.batch_size,
+            for b in batch(self.data(), self.batch_size,
                                           self.batch_size_fn):
                 self.batches.append(sorted(b, key=self.sort_key))
 

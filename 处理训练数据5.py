@@ -12,7 +12,8 @@ if not os.path.exists(操作记录):
 
 device = torch.device("cuda:0" if (torch.cuda.is_available()) else "cpu")
 resnet101=torchvision.models.resnet101(pretrained=True).eval()
-resnet101=myResnet(resnet101).cuda(device).requires_grad_(False)
+# resnet101=myResnet(resnet101).cuda(device).requires_grad_(False)
+resnet101=myResnet(resnet101).cpu().requires_grad_(False)
 词数词典路径="./json/词_数表.json"
 
 with open(词数词典路径, encoding='utf8') as f:
@@ -32,7 +33,8 @@ for 号 in dirs:
     # print(图片张量.shape[0])
     操作张量 = torch.Tensor(0)
 
-    伪词序列 = torch.from_numpy(np.ones((1, 60)).astype(np.int64)).cuda(device).unsqueeze(0)
+    # 伪词序列 = torch.from_numpy(np.ones((1, 60)).astype(np.int64)).cuda(device).unsqueeze(0)
+    伪词序列 = torch.from_numpy(np.ones((1, 60)).astype(np.int64)).cpu().unsqueeze(0)
 
     操作序列 = np.ones((1, 1))
     计数 = 0
@@ -65,7 +67,8 @@ for 号 in dirs:
                 img = Image.open(操作记录+'/' + 号 + '/{}.jpg'.format(df["图片号"]))
                 img2 = np.array(img)
 
-                img2 = torch.from_numpy(img2).cuda(device).unsqueeze(0).permute(0, 3, 2, 1) / 255
+                # img2 = torch.from_numpy(img2).cuda(device).unsqueeze(0).permute(0, 3, 2, 1) / 255
+                img2 = torch.from_numpy(img2).cpu().unsqueeze(0).permute(0, 3, 2, 1) / 255
                 _,out = resnet101(img2)
                 图片张量 = out.reshape(1,6*6*2048)
                 移动操作a=df["移动操作"]
@@ -77,7 +80,8 @@ for 号 in dirs:
                 img = Image.open(操作记录+'/' + 号 + '/{}.jpg'.format(df["图片号"]))
                 img2 = np.array(img)
 
-                img2 = torch.from_numpy(img2).cuda(device).unsqueeze(0).permute(0, 3, 2, 1) / 255
+                # img2 = torch.from_numpy(img2).cuda(device).unsqueeze(0).permute(0, 3, 2, 1) / 255
+                img2 = torch.from_numpy(img2).cpu().unsqueeze(0).permute(0, 3, 2, 1) / 255
                 _,out= resnet101(img2)
 
                 图片张量 = torch.cat((图片张量, out.reshape(1,6*6*2048)), 0)
