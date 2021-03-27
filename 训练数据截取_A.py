@@ -5,6 +5,7 @@ import torchvision
 from config import GPT2Config, TransformerConfig
 from Batch import create_masks
 from ModelA import get_model
+from log import logger
 
 import torch.nn.functional as F
 
@@ -80,29 +81,29 @@ def on_press(key):
     elif key_name == 'i':
         AI打开 = bool(1 - AI打开)
 
-    elif key_name == 'Key.space':
+    elif key_name == 'Key.left':
         操作 = '召唤师技能'
-    elif key_name == 'Key.end':
+    elif key_name == 'Key.up':
         操作 = '补刀'
-    elif key_name == 'Key.page_down':
+    elif key_name == 'Key.down':
         操作 = '推塔'
-    elif key_name == 'j':
+    elif key_name == '1':
         操作 = '一技能'
-    elif key_name == 'k':
+    elif key_name == '2':
         操作 = '二技能'
-    elif key_name == 'l':
+    elif key_name == '3':
         操作 = '三技能'
-    elif key_name == 'f':
+    elif key_name == '3':
         操作 = '回城'
-    elif key_name == 'g':
+    elif key_name == 'Key.space':
         操作 = '恢复'
     elif key_name == 'h':
         操作 = '召唤师技能'
-    elif key_name == 'Key.left':
+    elif key_name == '4':
         操作 = '一技能'
-    elif key_name == 'Key.down':
+    elif key_name == '5':
         操作 = '二技能'
-    elif key_name == 'Key.right':
+    elif key_name == '6':
         操作 = '三技能'
     elif key_name == 'Key.up':
         攻击态 = True
@@ -130,10 +131,10 @@ def on_release(key):
     elif key_name == 'q':
         Q键按下 = False
 
-    elif key_name == 'Key.up':
-
-        攻击态 = False
-    print("已经释放:", key_name)
+    # elif key_name == 'Key.up':
+    #
+    #     攻击态 = False
+    # print("已经释放:", key_name)
     if key == Key.esc:
         # 停止监听
         return False
@@ -172,45 +173,53 @@ def 处理方向():
         return ('')
 
 
-加三技能 = 'd 0 552 1878 100\nc\nu 0\nc\n'
-加二技能 = 'd 0 446 1687 100\nc\nu 0\nc\n'
-加一技能 = 'd 0 241 1559 100\nc\nu 0\nc\n'
-购买 = 'd 0 651 207 100\nc\nu 0\nc\n'
-词数词典路径 = "./json/词_数表.json"
-数_词表路径 = "./json/数_词表.json"
-操作查询路径 = "./json/名称_操作.json"
-操作词典 = {"图片号": "0", "移动操作": "无移动", "动作操作": "无动作"}
-th = threading.Thread(target=start_listen, )
-th.start()  # 启动线程
+图片路径 = 训练数据保存目录 + '/{}/'.format(str(int(time.time())))
+os.mkdir(图片路径)
+记录文件 = open(图片路径 + '_操作数据.json', 'w+')
 
-if os.path.isfile(词数词典路径) and os.path.isfile(数_词表路径):
-    词_数表, 数_词表 = 读出引索(词数词典路径, 数_词表路径)
-with open(词数词典路径, encoding='utf8') as f:
-    词数词典 = json.load(f)
-with open(操作查询路径, encoding='utf8') as f:
-    操作查询词典 = json.load(f)
+def main():
 
-方向表 = ['上移', '下移', '左移', '右移', '左上移', '左下移', '右上移', '右下移']
+    global AI打开
+    global 操作列
+    加三技能 = 'd 0 552 1878 100\nc\nu 0\nc\n'
+    加二技能 = 'd 0 446 1687 100\nc\nu 0\nc\n'
+    加一技能 = 'd 0 241 1559 100\nc\nu 0\nc\n'
+    购买 = 'd 0 651 207 100\nc\nu 0\nc\n'
+    词数词典路径 = "./json/词_数表.json"
+    数_词表路径 = "./json/数_词表.json"
+    操作查询路径 = "./json/名称_操作.json"
+    操作词典 = {"图片号": "0", "移动操作": "无移动", "动作操作": "无动作"}
+    th = threading.Thread(target=start_listen, )
+    th.start()  # 启动线程
 
-设备 = MyMNTDevice(_DEVICE_ID)
-device = torch.device("cuda:0" if (torch.cuda.is_available()) else "cpu")
-# mod = torchvision.models.resnet101(pretrained=True).eval().cuda(device).requires_grad_(False)
-mod = torchvision.models.resnet101(pretrained=True).eval().cpu().requires_grad_(False)
-resnet101 = myResnet(mod)
-config = TransformerConfig()
+    if os.path.isfile(词数词典路径) and os.path.isfile(数_词表路径):
+        词_数表, 数_词表 = 读出引索(词数词典路径, 数_词表路径)
+    with open(词数词典路径, encoding='utf8') as f:
+        词数词典 = json.load(f)
+    with open(操作查询路径, encoding='utf8') as f:
+        操作查询词典 = json.load(f)
 
-model = get_model(config, 130, 模型名称)
+    方向表 = ['上移', '下移', '左移', '右移', '左上移', '左下移', '右上移', '右下移']
 
-# model = model.cuda(device).requires_grad_(False)
-model = model.cpu().requires_grad_(False)
+    设备 = MyMNTDevice(_DEVICE_ID)
+    device = torch.device("cuda:0" if (torch.cuda.is_available()) else "cpu")
+    # mod = torchvision.models.resnet101(pretrained=True).eval().cuda(device).requires_grad_(False)
+    # mod = torchvision.models.resnet101(pretrained=True).eval().cpu().requires_grad_(False)
+    # mod = torchvision.models.resnet50(pretrained=True).eval().cpu().requires_grad_(False)
+    # mod = torchvision.models.resnet34(pretrained=True).eval().cpu().requires_grad_(False)
+    mod = torchvision.models.resnet18(pretrained=True).eval().cpu().requires_grad_(False)
+    resnet101 = myResnet(mod)
+    config = TransformerConfig()
 
-while True:
+    model = get_model(config, 130, 模型名称)
+
+    # model = model.cuda(device).requires_grad_(False)
+    model = model.cpu().requires_grad_(False)
+
+
     if AI打开:
 
-        图片路径 = 训练数据保存目录 + '/{}/'.format(str(int(time.time())))
-        os.mkdir(图片路径)
 
-        记录文件 = open(图片路径 + '_操作数据.json', 'w+')
 
         图片张量 = torch.Tensor(0)
         操作张量 = torch.Tensor(0)
@@ -226,6 +235,7 @@ while True:
         time_start = time.time()
         旧指令 = '移动停'
         for i in range(1000000):
+            logger.info("++++001+++++")
             if AI打开 == False:
                 break
             try:
@@ -234,9 +244,10 @@ while True:
                 AI打开 = False
                 print('取图失败')
                 break
-
+            logger.info("+++++002++++")
             计时开始 = time.time()
-
+            # shape_size = 1028
+            shape_size = 512
             if 图片张量.shape[0] == 0:
 
                 img = np.array(imgA)
@@ -246,7 +257,8 @@ while True:
                 img = img.permute(0, 3, 2, 1) / 255
 
                 _, out = resnet101(img)
-                图片张量 = out.reshape(1, 6 * 6 * 2048)
+                # print(out.size())
+                图片张量 = out.reshape(1, 6 * 6 * shape_size)
 
             elif 图片张量.shape[0] < 19:
 
@@ -256,7 +268,7 @@ while True:
                 img = torch.from_numpy(img).cpu().unsqueeze(0).permute(0, 3, 2, 1) / 255
 
                 _, out = resnet101(img)
-                图片张量 = torch.cat((图片张量, out.reshape(1, 6 * 6 * 2048)), 0)
+                图片张量 = torch.cat((图片张量, out.reshape(1, 6 * 6 * shape_size)), 0)
                 操作序列 = np.append(操作序列, 抽样np[0, 0])
 
             else:
@@ -270,16 +282,17 @@ while True:
                 图片张量 = 图片张量[0:18, :]
                 操作序列 = 操作序列[0:18]
                 操作序列 = np.append(操作序列, 抽样np[0, 0])
-                图片张量 = torch.cat((图片张量, out.reshape(1, 6 * 6 * 2048)), 0)
+                图片张量 = torch.cat((图片张量, out.reshape(1, 6 * 6 * shape_size)), 0)
             pre_process = time.time()
 
-            print("pre_process : {}s ".format(计时开始 - pre_process))
+            logger.info("pre_process : {} ms ".format(pre_process - 计时开始))
+
             # 操作张量 = torch.from_numpy(操作序列.astype(np.int64)).cuda(device)
             操作张量 = torch.from_numpy(操作序列.astype(np.int64)).cpu()
 
             src_mask, trg_mask = create_masks(操作张量.unsqueeze(0), 操作张量.unsqueeze(0), device)
             输出_实际_A = model(图片张量.unsqueeze(0), 操作张量.unsqueeze(0), trg_mask)
-
+            logger.info("+++++003++++")
             LI = 操作张量.contiguous().view(-1)
             # LA=输出_实际_A.view(-1, 输出_实际_A.size(-1))
             if 计数 % 50 == 0 and 计数 != 0:
@@ -288,10 +301,11 @@ while True:
                 设备.发送(加二技能)
                 设备.发送(加一技能)
                 设备.发送('移动停')
+                logger.info(旧指令, '周期')
                 print(旧指令, '周期')
                 time.sleep(0.02)
                 设备.发送(旧指令)
-
+            logger.info("++++004+++++")
             if 计数 % 1 == 0:
                 time_end = time.time()
 
@@ -306,7 +320,8 @@ while True:
                 # 操作词典 = {"图片号": "0", "移动操作": "无移动", "动作操作": "无动作"}
                 操作词典['图片号'] = str(i)
                 方向结果 = 处理方向()
-
+                logger.info("++++005+++++")
+                logger.info("方向结果:{} 操作列:{} 攻击态:{}".format(方向结果, len(操作列), 攻击态))
                 if 方向结果 != '' or len(操作列) != 0 or 攻击态 == True:
                     if 方向结果 == '':
                         操作词典['移动操作'] = 指令集[0]
@@ -323,11 +338,20 @@ while True:
 
                     else:
                         操作词典['动作操作'] = '无动作'
+                    logger.info("++++006+++++")
+                    try:
+                        路径_a = 图片路径 + '{}.jpg'.format(str(i))
+                        imgA.save(路径_a)
+                        logger.info(操作词典)
+                        json.dump(操作词典, 记录文件, ensure_ascii=False)
+                        记录文件.write('\n')
+                        logger.info("+++++007++++")
+                    except Exception as e:
+                        print(type(e))
+                        print(str(e))
 
-                    路径_a = 图片路径 + '{}.jpg'.format(str(i))
-                    imgA.save(路径_a)
-                    json.dump(操作词典, 记录文件, ensure_ascii=False)
-                    记录文件.write('\n')
+
+
                     print("write file sucess")
                     新指令 = 操作词典['移动操作']
                     if 新指令 != 旧指令 and 新指令 != '无移动':
@@ -342,8 +366,9 @@ while True:
                             AI打开 = False
                             print('发送失败')
                             break
-
-                        time.sleep(0.01)
+                        # logger.info("+++++++++")
+                        # time.sleep(0.01)
+                        # logger.info("+++++++++")
 
                     if 操作词典['动作操作'] != '无动作' and 操作词典['动作操作'] != '发起集合' and 操作词典['动作操作'] != '发起进攻' and 操作词典[
                         '动作操作'] != '发起撤退':
@@ -355,6 +380,7 @@ while True:
                             print('发送失败')
                             break
                 else:
+                    logger.info("++++else+++++")
                     操作列 = []
                     操作词典['移动操作'] = 指令集[0]
                     操作词典['动作操作'] = 指令集[1]
@@ -372,9 +398,9 @@ while True:
                             AI打开 = False
                             print('发送失败')
                             break
-
+                        logger.info("++++sleep+++++")
                         time.sleep(0.01)
-
+                        logger.info("+++++++++")
                     if 指令集[1] != '无动作' and 指令集[1] != '发起集合' and 指令集[1] != '发起进攻' and 指令集[1] != '发起撤退':
                         print(指令集[1])
                         try:
@@ -383,16 +409,32 @@ while True:
                             AI打开 = False
                             print('发送失败')
                             break
+                logger.info("++++008+++++")
                 用时1 = 0.22 - (time.time() - 计时开始)
                 if 用时1 > 0:
+                    logger.info("++++sleep+++++")
                     time.sleep(用时1)
+                    logger.info("+++++++++")
 
                 用时 = time_end - time_start
                 print("用时{} 第{}张 延时{}".format(用时, i, 用时1), 'A键按下', A键按下, 'W键按下', W键按下, 'S键按下', S键按下, 'D键按下', D键按下,
                       '旧指令', 旧指令, 'AI打开', AI打开, '操作列', 操作列)
 
                 计数 = 计数 + 1
+                logger.info("++++009+++++")
 
     记录文件.close()
     time.sleep(1)
     print('AI打开', AI打开)
+
+if __name__ == '__main__':
+    try:
+        main()
+    except KeyboardInterrupt:
+        print('Interrupted')
+        try:
+            记录文件.close()
+            print('记录文件.close()')
+            sys.exit(0)
+        except SystemExit:
+            os._exit(0)
