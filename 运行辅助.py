@@ -66,57 +66,60 @@ class MyMNTDevice():
         pass
 
 
-    def 发送(self,内容):
+    def 发送(self,内容, Predict = False):
 
         # wangzhe_fuc()
-        print(内容)
-        # pyautogui.write('Hello world!', interval=0.25)  # Type with quarter-second pause in between each key.
-        pyautogui.keyUp('a')
-        pyautogui.keyUp('w')
-        pyautogui.keyUp('d')
-        pyautogui.keyUp('shift')
-        pyautogui.keyUp('s')
 
-        if 内容 == "下移" or 内容 == "手动模式 下移":
-
-            pyautogui.keyDown('s')
-            print(" pyautogui.keyDown('s')")
-        elif  内容 == "左移":
-            pyautogui.keyDown('a')
-            print("pyautogui.keyDown('a')")
-        elif 内容 == "右移" or 内容 == "手动模式 右移":
-            pyautogui.keyDown('d')
-            print(" pyautogui.keyDown('d')")
-        elif 内容 == "上移" or  内容 == "手动模式 上移":
-            pyautogui.keyDown('w')
-            print("")
-        elif 内容 == "右下移"or  内容 == "手动模式 右下移":
-            pyautogui.keyDown('a')
-            pyautogui.keyDown('s')
-            print("右下移 pyautogui.keyDown('s')")
-        elif 内容 == "左下移" or  内容 == "手动模式 左下移":
-            pyautogui.keyDown('')
-            pyautogui.keyDown('s')
-            print("左下移 pyautogui.keyDown('s')")
-        elif 内容 == "攻击":
-            pyautogui.moveTo(880, 521, duration=0, tween=pyautogui.easeInOutQuad)
-            pyautogui.click()
-            print(" pyautogui.click()")
-        elif 内容 == "移动停":
-            pyautogui.keyDown('shift')
+        if Predict:
+            print(内容)
+            # pyautogui.write('Hello world!', interval=0.25)  # Type with quarter-second pause in between each key.
+            pyautogui.keyUp('a')
+            pyautogui.keyUp('w')
+            pyautogui.keyUp('d')
             pyautogui.keyUp('shift')
-            print("shift")
+            pyautogui.keyUp('s')
+
+            if 内容 == "下移" or 内容 == "手动模式 下移":
+
+                pyautogui.keyDown('s')
+                print(" pyautogui.keyDown('s')")
+            elif  内容 == "左移":
+                pyautogui.keyDown('a')
+                print("pyautogui.keyDown('a')")
+            elif 内容 == "右移" or 内容 == "手动模式 右移":
+                pyautogui.keyDown('d')
+                print(" pyautogui.keyDown('d')")
+            elif 内容 == "上移" or  内容 == "手动模式 上移":
+                pyautogui.keyDown('w')
+                print("")
+            elif 内容 == "右下移"or  内容 == "手动模式 右下移":
+                pyautogui.keyDown('a')
+                pyautogui.keyDown('s')
+                print("右下移 pyautogui.keyDown('s')")
+            elif 内容 == "左下移" or  内容 == "手动模式 左下移":
+                pyautogui.keyDown('')
+                pyautogui.keyDown('s')
+                print("左下移 pyautogui.keyDown('s')")
+            elif 内容 == "攻击":
+                pyautogui.moveTo(880, 521, duration=0, tween=pyautogui.easeInOutQuad)
+                pyautogui.click()
+                print(" pyautogui.click()")
+            elif 内容 == "移动停":
+                pyautogui.keyDown('shift')
+                pyautogui.keyUp('shift')
+                print("shift")
+            else:
+                pyautogui.keyDown('shift')
+                pyautogui.keyUp('shift')
+                print("else")
+
+            # pyautogui.press('d')  # Simulate pressing the Escape key.
+            # pyautogui.keyDown('shift')
+            # pyautogui.write(['left', 'left', 'left', 'left', 'left', 'left'])
+            # pyautogui.keyUp('shift')
+            # pyautogui.hotkey('ctrl', 'c')
         else:
-            pyautogui.keyDown('shift')
-            pyautogui.keyUp('shift')
-            print("else")
-
-        # pyautogui.press('d')  # Simulate pressing the Escape key.
-        # pyautogui.keyDown('shift')
-        # pyautogui.write(['left', 'left', 'left', 'left', 'left', 'left'])
-        # pyautogui.keyUp('shift')
-        # pyautogui.hotkey('ctrl', 'c')
-
+            print("发送")
 
 def 取图(窗口名称):
     # # 获取后台窗口的句柄，注意后台窗口不能最小化
@@ -152,7 +155,7 @@ def 取图(窗口名称):
     # im_PIL = Image.open("image/85.jpg")
     #im_PIL= Image.frombuffer('RGB', (bmpinfo['bmWidth'], bmpinfo['bmHeight']), bmpstr)
     #im_PIL =Image.frombytes('RGB',(bmpinfo['bmWidth'],bmpinfo['bmHeight']),bmpstr)
-    box = (0,65,960,545)
+    box = (0,50,860,530)
     im2 = im_PIL.crop(box)
 
     #im2.save('./dd2d.jpg')
