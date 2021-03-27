@@ -6,6 +6,8 @@ import json
 from PIL import Image
 from resnet_utils import myResnet
 
+os.environ['KMP_DUPLICATE_LIB_OK']='True'
+
 操作记录='../训练数据样本'
 if not os.path.exists(操作记录):
    os.makedirs(操作记录)
@@ -40,7 +42,7 @@ for 号 in dirs:
     计数 = 0
     print('正在处理{}'.format(号))
     数据列=[]
-    with open(路径json, encoding='ansi') as f:
+    with open(路径json, encoding='utf8') as f:
         移动操作='无移动'
         while True:
             df = f.readline()
@@ -58,7 +60,7 @@ for 号 in dirs:
 
 
 
-    with open(路径json, encoding='ansi') as f:
+    with open(路径json, encoding='utf8') as f:
         移动操作='无移动'
         for i in range(len(数据列)):
             df = 数据列[i]
@@ -94,4 +96,5 @@ for 号 in dirs:
         图片张量np=图片张量.cpu().numpy()
         操作序列=操作序列.astype(np.int64)
         np.savez(numpy数组路径, 图片张量np=图片张量np, 操作序列=操作序列)
+        print("success save np")
 

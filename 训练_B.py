@@ -13,6 +13,8 @@ from 杂项 import *
 import os
 import random
 
+os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
+
 训练数据保存目录='../训练数据样本'
 if not os.path.exists(训练数据保存目录):
    os.makedirs(训练数据保存目录)
@@ -110,6 +112,8 @@ for j in range(100):
                 输出_实际_A = model(图片_分_torch,操作_分_torch ,trg_mask)
                 lin = 输出_实际_A.view(-1, 输出_实际_A.size(-1))
                 optimizer.zero_grad()
+                print(lin.size())
+                print(目标输出_分_torch.contiguous().view(-1))
                 loss = F.cross_entropy(lin, 目标输出_分_torch.contiguous().view(-1), ignore_index=-1)
                 if 计数 % 1 == 0:
                     print(loss)
