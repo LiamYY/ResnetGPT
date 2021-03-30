@@ -100,11 +100,11 @@ def on_press(key):
     elif key_name == 'h':
         操作 = '召唤师技能'
     elif key_name == '4':
-        操作 = '一技能'
+        操作 = '加一技能'
     elif key_name == '5':
-        操作 = '二技能'
+        操作 = '加二技能'
     elif key_name == '6':
-        操作 = '三技能'
+        操作 = '加三技能'
     elif key_name == 'Key.up':
         攻击态 = True
 
@@ -172,19 +172,159 @@ def 处理方向():
     else:
         return ('')
 
+def preprocess(图片张量, imgA , resnet101, 操作序列, 抽样np):
+    # shape_size = 2048
+    shape_size = 512
+    if 图片张量.shape[0] == 0:
+
+        img = np.array(imgA)
+
+        # img = torch.from_numpy(img).cuda(device).unsqueeze(0).permute(0, 3, 2, 1) / 255
+        img = torch.from_numpy(img).cpu().unsqueeze(0)
+        img = img.permute(0, 3, 2, 1) / 255
+
+        _, out = resnet101(img)
+        # print(out.size())
+        图片张量 = out.reshape(1, 6 * 6 * shape_size)
+
+    elif 图片张量.shape[0] < 19:
+
+        img = np.array(imgA)
+
+        # img = torch.from_numpy(img).cuda(device).unsqueeze(0).permute(0, 3, 2, 1) / 255
+        img = torch.from_numpy(img).cpu().unsqueeze(0).permute(0, 3, 2, 1) / 255
+
+        _, out = resnet101(img)
+        图片张量 = torch.cat((图片张量, out.reshape(1, 6 * 6 * shape_size)), 0)
+        操作序列 = np.append(操作序列, 抽样np[0, 0])
+
+    else:
+
+        img = np.array(imgA)
+
+        # img = torch.from_numpy(img).cuda(device).unsqueeze(0).permute(0, 3, 2, 1) / 255
+        img = torch.from_numpy(img).cpu().unsqueeze(0).permute(0, 3, 2, 1) / 255
+
+        _, out = resnet101(img)
+        图片张量 = 图片张量[0:18, :]
+        操作序列 = 操作序列[0:18]
+        操作序列 = np.append(操作序列, 抽样np[0, 0])
+        图片张量 = torch.cat((图片张量, out.reshape(1, 6 * 6 * shape_size)), 0)
+
+    return 图片张量, 操作序列
+
+def output(方向结果, 操作列, 操作词典, 指令集,旧指令, 设备, imgA):
+
+    success = 1
+
+    if 方向结果 != '' or len(操作列) != 0 or 攻击态 == True:
+        if 方向结果 == '':
+            操作词典['移动操作'] = 指令集[0]
+        else:
+            操作词典['移动操作'] = 方向结果
+
+        if len(操作列) != 0:
+            操作词典['动作操作'] = 操作列[0]
+            lock.acquire()
+            del 操作列[0]
+            lock.release()
+        elif 攻击态 == True:
+            操作词典['动作操作'] = '攻击'
+
+        else:
+            操作词典['动作操作'] = '无动作'
+
+        # write file
+        if WRITEFILE:
+            logger.info("++++006+++++")
+            try:
+                路径_a = 图片路径 + '{}.jpg'.format(str(i))
+                imgA.save(路径_a)
+                logger.info(操作词典)
+                json.dump(操作词典, 记录文件, ensure_ascii=False)
+                记录文件.write('\n')
+                logger.info("+++++007++++")
+                print("write file sucess")
+            except Exception as e:
+                print(type(e))
+                print(str(e))
+                print("write file fail")
+
+        新指令 = 操作词典['移动操作']
+        if 新指令 != 旧指令 and 新指令 != '无移动':
+            旧指令 = 新指令
+            # print(旧指令,操作查询词典[旧指令])
+            try:
+                logger.warning('手动模式'.format(旧指令))
+
+                设备.发送(旧指令)
+
+            except:
+
+                print('发送失败')
+                success = 0
+            # logger.info("+++++++++")
+            # time.sleep(0.01)
+            # logger.info("+++++++++")
+
+        if 操作词典['动作操作'] != '无动作' and 操作词典['动作操作'] != '发起集合' and 操作词典['动作操作'] != '发起进攻' and 操作词典[
+            '动作操作'] != '发起撤退':
+            logger.warning('手动 {}'.format(指令集[1]))
+            try:
+                设备.发送(操作词典['动作操作'])
+            except:
+
+                print('发送失败')
+                success = 0
+    else:
+        logger.info("++++else+++++")
+        操作列 = []
+        操作词典['移动操作'] = 指令集[0]
+        操作词典['动作操作'] = 指令集[1]
+
+        新指令 = 指令集[0]
+        if 新指令 != 旧指令 and 新指令 != '无移动':
+            旧指令 = 新指令
+            # print(旧指令,操作查询词典[旧指令])
+            try:
+                logger.warning(旧指令)
+
+                设备.发送(旧指令)
+
+            except:
+
+                print('发送失败')
+                success = 0
+            logger.info("++++sleep+++++")
+            time.sleep(0.01)
+            logger.info("+++++++++")
+
+        #
+        if 指令集[1] != '无动作' and 指令集[1] != '发起集合' and 指令集[1] != '发起进攻' and 指令集[1] != '发起撤退':
+            logger.warning(指令集[1])
+            try:
+                设备.发送(指令集[1])
+            except:
+
+                print('发送失败')
+                success = 0
+
+    return 操作列, success
 
 图片路径 = 训练数据保存目录 + '/{}/'.format(str(int(time.time())))
 os.mkdir(图片路径)
 记录文件 = open(图片路径 + '_操作数据.json', 'w+')
+# WRITEFILE = True
+WRITEFILE = False
 
 def main():
 
     global AI打开
     global 操作列
-    加三技能 = 'd 0 552 1878 100\nc\nu 0\nc\n'
-    加二技能 = 'd 0 446 1687 100\nc\nu 0\nc\n'
-    加一技能 = 'd 0 241 1559 100\nc\nu 0\nc\n'
-    购买 = 'd 0 651 207 100\nc\nu 0\nc\n'
+    加三技能 = '6'
+    加二技能 = '5'
+    加一技能 = '4'
+    购买 = 'f1'
     词数词典路径 = "./json/词_数表.json"
     数_词表路径 = "./json/数_词表.json"
     操作查询路径 = "./json/名称_操作.json"
@@ -215,19 +355,15 @@ def main():
 
     # model = model.cuda(device).requires_grad_(False)
     model = model.cpu().requires_grad_(False)
-
+    抽样np = 0
 
     if AI打开:
-
-
 
         图片张量 = torch.Tensor(0)
         操作张量 = torch.Tensor(0)
 
         # 伪词序列 = torch.from_numpy(np.ones((1, 60)).astype(np.int64)).cuda(device).unsqueeze(0)
         伪词序列 = torch.from_numpy(np.ones((1, 60)).astype(np.int64)).cpu().unsqueeze(0)
-
-        指令延时 = 0
 
         操作序列 = np.ones((1,))
         操作序列[0] = 128
@@ -246,64 +382,34 @@ def main():
                 break
             logger.info("+++++002++++")
             计时开始 = time.time()
-            # shape_size = 1028
-            shape_size = 512
-            if 图片张量.shape[0] == 0:
 
-                img = np.array(imgA)
+            # preprocess
+            图片张量, 操作序列 = preprocess(图片张量, imgA , resnet101, 操作序列, 抽样np)
 
-                # img = torch.from_numpy(img).cuda(device).unsqueeze(0).permute(0, 3, 2, 1) / 255
-                img = torch.from_numpy(img).cpu().unsqueeze(0)
-                img = img.permute(0, 3, 2, 1) / 255
-
-                _, out = resnet101(img)
-                # print(out.size())
-                图片张量 = out.reshape(1, 6 * 6 * shape_size)
-
-            elif 图片张量.shape[0] < 19:
-
-                img = np.array(imgA)
-
-                # img = torch.from_numpy(img).cuda(device).unsqueeze(0).permute(0, 3, 2, 1) / 255
-                img = torch.from_numpy(img).cpu().unsqueeze(0).permute(0, 3, 2, 1) / 255
-
-                _, out = resnet101(img)
-                图片张量 = torch.cat((图片张量, out.reshape(1, 6 * 6 * shape_size)), 0)
-                操作序列 = np.append(操作序列, 抽样np[0, 0])
-
-            else:
-
-                img = np.array(imgA)
-
-                # img = torch.from_numpy(img).cuda(device).unsqueeze(0).permute(0, 3, 2, 1) / 255
-                img = torch.from_numpy(img).cpu().unsqueeze(0).permute(0, 3, 2, 1) / 255
-
-                _, out = resnet101(img)
-                图片张量 = 图片张量[0:18, :]
-                操作序列 = 操作序列[0:18]
-                操作序列 = np.append(操作序列, 抽样np[0, 0])
-                图片张量 = torch.cat((图片张量, out.reshape(1, 6 * 6 * shape_size)), 0)
             pre_process = time.time()
 
             logger.info("pre_process : {} ms ".format(pre_process - 计时开始))
 
+            # transform model
             # 操作张量 = torch.from_numpy(操作序列.astype(np.int64)).cuda(device)
             操作张量 = torch.from_numpy(操作序列.astype(np.int64)).cpu()
-
             src_mask, trg_mask = create_masks(操作张量.unsqueeze(0), 操作张量.unsqueeze(0), device)
             输出_实际_A = model(图片张量.unsqueeze(0), 操作张量.unsqueeze(0), trg_mask)
+
+
             logger.info("+++++003++++")
             LI = 操作张量.contiguous().view(-1)
             # LA=输出_实际_A.view(-1, 输出_实际_A.size(-1))
-            if 计数 % 50 == 0 and 计数 != 0:
+            if 计数 % 20 == 0 and 计数 != 0:
+                print("jineng + zhuangbei ")
                 设备.发送(购买)
                 设备.发送(加三技能)
                 设备.发送(加二技能)
                 设备.发送(加一技能)
                 设备.发送('移动停')
-                logger.info(旧指令, '周期')
-                print(旧指令, '周期')
-                time.sleep(0.02)
+                logger.warning("{} {}".format(旧指令, '周期'))
+                # print(旧指令, '周期')
+                # time.sleep(0.02)
                 设备.发送(旧指令)
             logger.info("++++004+++++")
             if 计数 % 1 == 0:
@@ -322,93 +428,15 @@ def main():
                 方向结果 = 处理方向()
                 logger.info("++++005+++++")
                 logger.info("方向结果:{} 操作列:{} 攻击态:{}".format(方向结果, len(操作列), 攻击态))
-                if 方向结果 != '' or len(操作列) != 0 or 攻击态 == True:
-                    if 方向结果 == '':
-                        操作词典['移动操作'] = 指令集[0]
-                    else:
-                        操作词典['移动操作'] = 方向结果
 
-                    if len(操作列) != 0:
-                        操作词典['动作操作'] = 操作列[0]
-                        lock.acquire()
-                        del 操作列[0]
-                        lock.release()
-                    elif 攻击态 == True:
-                        操作词典['动作操作'] = '攻击'
+                # deal with output
+                操作列, output_suc = output(方向结果, 操作列, 操作词典, 指令集,旧指令, 设备, imgA)
 
-                    else:
-                        操作词典['动作操作'] = '无动作'
-                    logger.info("++++006+++++")
-                    try:
-                        路径_a = 图片路径 + '{}.jpg'.format(str(i))
-                        imgA.save(路径_a)
-                        logger.info(操作词典)
-                        json.dump(操作词典, 记录文件, ensure_ascii=False)
-                        记录文件.write('\n')
-                        logger.info("+++++007++++")
-                    except Exception as e:
-                        print(type(e))
-                        print(str(e))
+                if output_suc == 0:
+                    AI打开 = False
+                    break
 
-
-
-                    print("write file sucess")
-                    新指令 = 操作词典['移动操作']
-                    if 新指令 != 旧指令 and 新指令 != '无移动':
-                        旧指令 = 新指令
-                        # print(旧指令,操作查询词典[旧指令])
-                        try:
-                            print('手动模式', 旧指令)
-
-                            设备.发送(旧指令)
-
-                        except:
-                            AI打开 = False
-                            print('发送失败')
-                            break
-                        # logger.info("+++++++++")
-                        # time.sleep(0.01)
-                        # logger.info("+++++++++")
-
-                    if 操作词典['动作操作'] != '无动作' and 操作词典['动作操作'] != '发起集合' and 操作词典['动作操作'] != '发起进攻' and 操作词典[
-                        '动作操作'] != '发起撤退':
-                        print('手动', 指令集[1])
-                        try:
-                            设备.发送(操作词典['动作操作'])
-                        except:
-                            AI打开 = False
-                            print('发送失败')
-                            break
-                else:
-                    logger.info("++++else+++++")
-                    操作列 = []
-                    操作词典['移动操作'] = 指令集[0]
-                    操作词典['动作操作'] = 指令集[1]
-
-                    新指令 = 指令集[0]
-                    if 新指令 != 旧指令 and 新指令 != '无移动':
-                        旧指令 = 新指令
-                        # print(旧指令,操作查询词典[旧指令])
-                        try:
-                            print(旧指令)
-
-                            设备.发送(旧指令)
-
-                        except:
-                            AI打开 = False
-                            print('发送失败')
-                            break
-                        logger.info("++++sleep+++++")
-                        time.sleep(0.01)
-                        logger.info("+++++++++")
-                    if 指令集[1] != '无动作' and 指令集[1] != '发起集合' and 指令集[1] != '发起进攻' and 指令集[1] != '发起撤退':
-                        print(指令集[1])
-                        try:
-                            设备.发送(指令集[1])
-                        except:
-                            AI打开 = False
-                            print('发送失败')
-                            break
+                # logging
                 logger.info("++++008+++++")
                 用时1 = 0.22 - (time.time() - 计时开始)
                 if 用时1 > 0:
