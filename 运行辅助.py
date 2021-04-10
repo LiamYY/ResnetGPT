@@ -85,7 +85,23 @@ class MyMNTDevice():
             # pyautogui.write('Hello world!', interval=0.25)  # Type with quarter-second pause in between each key.
             pyautogui.keyUp(input_key)
             # print(" pyautogui.keyUp(input_key):{}".format(input_key))
-            if "下移" in 内容 and len(内容) == 2:
+            if "右上移"in 内容 :
+                key_method('w')
+                key_method('d')
+                print("pyautogui.keyDown 右上移")
+            elif "左上移"in 内容 :
+                key_method('w')
+                key_method('a')
+                print("pyautogui.keyDown 左上移")
+            elif "右下移"in 内容 :
+                key_method('d')
+                key_method('s')
+                print("pyautogui.keyDown('右下移 ')")
+            elif "左下移" in 内容 :
+                key_method('a')
+                key_method('s')
+                print(" pyautogui.keyDown('左下移')")
+            elif "下移" in 内容 and len(内容) == 2:
 
                 key_method("s")
                 
@@ -101,23 +117,7 @@ class MyMNTDevice():
             elif "上移" in 内容 and len(内容) == 2:
                 key_method('w')
                 print("pyautogui.keyDown('上移w')")
-            elif "右上移"in 内容 :
-                key_method('w')
-                key_method('d')
-                print("pyautogui.keyDown 右上移")
-            elif "左上移"in 内容 :
-                key_method('w')
-                key_method('a')
-                print("pyautogui.keyDown 左上移")
-            elif "右下移"in 内容 :
-                key_method('d')
-                key_method('s')
-                print("pyautogui.keyDown('右下移 ')")
-            elif "左下移" in 内容 :
-                key_method('a')
-                key_method('s')
-                
-                print(" pyautogui.keyDown('左下移')")
+
             elif "攻击" in 内容 :
                 pyautogui.press('up')
                 print(" pyautogui.press('攻击 up')")
@@ -161,6 +161,15 @@ class MyMNTDevice():
             elif "f1" in 内容 :
                 pyautogui.press('f1')
                 print("press f1")
+            # elif "恢复" in 内容 :
+            #     pyautogui.press('f1')
+            #     print("press f1")
+            # elif "回城" in 内容 :
+            #     pyautogui.press('f1')
+            #     print("press 回城 space")
+            elif "召唤师技能" in 内容 :
+                pyautogui.press('e')
+                print("press 召唤师技能 e")
             else:
 
                 print(内容)
