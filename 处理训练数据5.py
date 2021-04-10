@@ -42,6 +42,7 @@ for 号 in dirs:
     计数 = 0
     print('正在处理{}'.format(号))
     数据列=[]
+    # utf8
     with open(路径json, encoding='utf8') as f:
         移动操作='无移动'
         while True:
@@ -58,11 +59,11 @@ for 号 in dirs:
     #         if i>1 and  数据列[i-2]['动作操作']=='无动作' :
     #             数据列[i - 2]['动作操作'] = 数据列[i]['动作操作']
 
-
-
-    with open(路径json, encoding='utf8') as f:
+    # ansi
+    # utf8
+    with open(路径json, encoding='GB2312') as f:
         移动操作='无移动'
-        for i in range(len(数据列)):
+        for i in range(11):
             df = 数据列[i]
 
             if 图片张量.shape[0] == 0:
@@ -90,7 +91,12 @@ for 号 in dirs:
                 移动操作a=df["移动操作"]
                 if 移动操作a!='无移动':
                     移动操作=移动操作a
-                操作序列=np.append(操作序列, 词数词典[移动操作 + "_" + df["动作操作"]])
+
+                order = 移动操作 + "_" + df["动作操作"]
+                if order not in 词数词典:
+                    order = 移动操作 + "_" + df["动作操作"][-3:]
+
+                操作序列=np.append(操作序列, 词数词典[order])
                 #操作序列[0, 0] = 词数词典[df["移动操作"] + "_" + df["动作操作"]]
 
         图片张量np=图片张量.cpu().numpy()
