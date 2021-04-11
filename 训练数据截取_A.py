@@ -82,9 +82,9 @@ def on_press(key):
         AI打开 = bool(1 - AI打开)
 
     elif key_name == 'Key.left':
-        操作 = '召唤师技能'
-    elif key_name == 'Key.up':
         操作 = '补刀'
+    elif key_name == 'Key.up':
+        操作 = '攻击'
     elif key_name == 'Key.down':
         操作 = '推塔'
     elif key_name == '1':
@@ -93,11 +93,11 @@ def on_press(key):
         操作 = '二技能'
     elif key_name == '3':
         操作 = '三技能'
-    elif key_name == '3':
-        操作 = '回城'
     elif key_name == 'Key.space':
+        操作 = '回城'
+    elif key_name == 'q':
         操作 = '恢复'
-    elif key_name == 'h':
+    elif key_name == 'e':
         操作 = '召唤师技能'
     elif key_name == '4':
         操作 = '加一技能'
@@ -213,7 +213,7 @@ def preprocess(图片张量, imgA , resnet101, 操作序列, 抽样np):
 
     return 图片张量, 操作序列
 
-def output(方向结果, 操作列, 操作词典, 指令集,旧指令, 设备, imgA):
+def output(方向结果, 操作列, 操作词典, 指令集,旧指令, 设备, imgA, i):
 
     success = 1
 
@@ -255,7 +255,7 @@ def output(方向结果, 操作列, 操作词典, 指令集,旧指令, 设备, i
             旧指令 = 新指令
             # print(旧指令,操作查询词典[旧指令])
             try:
-                logger.warning('手动模式'.format(旧指令))
+                logger.warning('手动模式 :{}'.format(旧指令))
 
                 设备.发送(旧指令)
 
@@ -266,12 +266,14 @@ def output(方向结果, 操作列, 操作词典, 指令集,旧指令, 设备, i
             # logger.info("+++++++++")
             # time.sleep(0.01)
             # logger.info("+++++++++")
-
-        if 操作词典['动作操作'] != '无动作' and 操作词典['动作操作'] != '发起集合' and 操作词典['动作操作'] != '发起进攻' and 操作词典[
-            '动作操作'] != '发起撤退':
+        logger.warning('动作操作 {}'.format(操作词典['动作操作']))
+        logger.info(指令集)
+        if 操作词典['动作操作'] != '无动作' and 操作词典['动作操作'] != '发起集合' \
+                and 操作词典['动作操作'] != '发起进攻' and 操作词典['动作操作'] != '发起撤退':
             logger.warning('手动 {}'.format(指令集[1]))
             try:
-                设备.发送(操作词典['动作操作'])
+                # 设备.发送(操作词典['动作操作'])
+                设备.发送(指令集[1])
             except:
 
                 print('发送失败')
@@ -314,8 +316,8 @@ def output(方向结果, 操作列, 操作词典, 指令集,旧指令, 设备, i
 图片路径 = 训练数据保存目录 + '/{}/'.format(str(int(time.time())))
 os.mkdir(图片路径)
 记录文件 = open(图片路径 + '_操作数据.json', 'w+')
-# WRITEFILE = True
-WRITEFILE = False
+WRITEFILE = True
+# WRITEFILE = False
 
 def main():
 
@@ -371,7 +373,7 @@ def main():
         time_start = time.time()
         旧指令 = '移动停'
         for i in range(1000000):
-            logger.info("++++001+++++")
+            # logger.info("++++001+++++")
             if AI打开 == False:
                 break
             try:
@@ -380,7 +382,7 @@ def main():
                 AI打开 = False
                 print('取图失败')
                 break
-            logger.info("+++++002++++")
+            # logger.info("+++++002++++")
             计时开始 = time.time()
 
             # preprocess
@@ -397,7 +399,7 @@ def main():
             输出_实际_A = model(图片张量.unsqueeze(0), 操作张量.unsqueeze(0), trg_mask)
 
 
-            logger.info("+++++003++++")
+            # logger.info("+++++003++++")
             LI = 操作张量.contiguous().view(-1)
             # LA=输出_实际_A.view(-1, 输出_实际_A.size(-1))
             if 计数 % 20 == 0 and 计数 != 0:
@@ -411,7 +413,7 @@ def main():
                 # print(旧指令, '周期')
                 # time.sleep(0.02)
                 设备.发送(旧指令)
-            logger.info("++++004+++++")
+            # logger.info("++++004+++++")
             if 计数 % 1 == 0:
                 time_end = time.time()
 
@@ -426,18 +428,18 @@ def main():
                 # 操作词典 = {"图片号": "0", "移动操作": "无移动", "动作操作": "无动作"}
                 操作词典['图片号'] = str(i)
                 方向结果 = 处理方向()
-                logger.info("++++005+++++")
+                # logger.info("++++005+++++")
                 logger.info("方向结果:{} 操作列:{} 攻击态:{}".format(方向结果, len(操作列), 攻击态))
 
                 # deal with output
-                操作列, output_suc = output(方向结果, 操作列, 操作词典, 指令集,旧指令, 设备, imgA)
+                操作列, output_suc = output(方向结果, 操作列, 操作词典, 指令集,旧指令, 设备, imgA, i)
 
                 if output_suc == 0:
                     AI打开 = False
                     break
 
                 # logging
-                logger.info("++++008+++++")
+                # logger.info("++++008+++++")
                 用时1 = 0.22 - (time.time() - 计时开始)
                 if 用时1 > 0:
                     logger.info("++++sleep+++++")
@@ -449,7 +451,7 @@ def main():
                       '旧指令', 旧指令, 'AI打开', AI打开, '操作列', 操作列)
 
                 计数 = 计数 + 1
-                logger.info("++++009+++++")
+                # logger.info("++++009+++++")
 
     记录文件.close()
     time.sleep(1)
