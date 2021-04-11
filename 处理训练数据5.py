@@ -26,7 +26,7 @@ for root, dirs, files in os.walk(操作记录):
         break
 for 号 in dirs:
     路径json = 操作记录+'/' + 号 + '/_操作数据.json'
-    numpy数组路径= 操作记录+'/' + 号 + '/图片_操作预处理数据2.npz'
+    numpy数组路径= 操作记录+'/' + 号 + '/图片_操作预处理数据.npz'
     if os.path.isfile(numpy数组路径):
         continue
 
@@ -61,9 +61,10 @@ for 号 in dirs:
 
     # ansi
     # utf8
-    with open(路径json, encoding='GB2312') as f:
+    # GB2312
+    with open(路径json, encoding='utf8') as f:
         移动操作='无移动'
-        for i in range(11):
+        for i in range(len(数据列)):
             df = 数据列[i]
 
             if 图片张量.shape[0] == 0:
@@ -91,7 +92,7 @@ for 号 in dirs:
                 移动操作a=df["移动操作"]
                 if 移动操作a!='无移动':
                     移动操作=移动操作a
-
+                # 操作序列 = np.append(操作序列, 词数词典[移动操作 + "_" + df["动作操作"]])
                 order = 移动操作 + "_" + df["动作操作"]
                 if order not in 词数词典:
                     order = 移动操作 + "_" + df["动作操作"][-3:]
@@ -99,8 +100,13 @@ for 号 in dirs:
                 操作序列=np.append(操作序列, 词数词典[order])
                 #操作序列[0, 0] = 词数词典[df["移动操作"] + "_" + df["动作操作"]]
 
-        图片张量np=图片张量.cpu().numpy()
-        操作序列=操作序列.astype(np.int64)
+        # pic_tensor_np=图片张量.cpu().numpy()
+        # order_list=操作序列.astype(np.int64)
+        #
+        # np.savez(numpy数组路径, pic_tensor_np=pic_tensor_np, order_list=order_list)
+
+        图片张量np = 图片张量.cpu().numpy()
+        操作序列 = 操作序列.astype(np.int64)
         np.savez(numpy数组路径, 图片张量np=图片张量np, 操作序列=操作序列)
         print("success save np")
 
